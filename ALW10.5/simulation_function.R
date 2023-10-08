@@ -12,16 +12,10 @@ current_version <- R.version$version.string
 cat("Current R Version:", current_version, "\n")
 # options(repos = c(CRAN = "https://cran.r-project.org"))
 
-# Get the R repositories
-repositories <- getOption("repos")
-
-# Print the repositories
-print(repositories)
-
-#install.packages("pkg/MASS_7.3-60.tar.gz", "pkg/simstudy_0.7.0.tar.gz", dependencies = TRUE, lib=Sys.getenv("R_LIBS_USER"), repos=NULL, type = "source")
-install.packages("simstudy", dependencies = TRUE, lib=Sys.getenv("R_LIBS_USER"), repos='http://cran.rstudio.com/', type = "source")
+# Only install simustudy because Mass is already installed per https://help.rc.ufl.edu/doc/R
+# Additional packages need to be installed as personal library due to hyper gator permission issue
+#install.packages("simstudy", dependencies = TRUE, lib=Sys.getenv("R_LIBS_USER"), repos='http://cran.rstudio.com/', type = "source")
 library("MASS")
-
 library("simstudy", lib.loc=Sys.getenv("R_LIBS_USER"))
 
 PS_model_data = function(n_cluster, #the number of cluster 
