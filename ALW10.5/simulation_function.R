@@ -17,13 +17,12 @@ repositories <- getOption("repos")
 
 # Print the repositories
 print(repositories)
-options(install.packages.check.source = FALSE)
-options(download.file.method = "wget")
 
-install.packages("MASS","simstudy", dependencies = TRUE, lib=Sys.getenv("R_LIBS_USER"), repos='cran.us.r-project.org')
-library(MASS, lib.loc=Sys.getenv("R_LIBS_USER"))
+#install.packages("pkg/MASS_7.3-60.tar.gz", "pkg/simstudy_0.7.0.tar.gz", dependencies = TRUE, lib=Sys.getenv("R_LIBS_USER"), repos=NULL, type = "source")
+install.packages("MASS", "simstudy", dependencies = TRUE, lib=Sys.getenv("R_LIBS_USER"), repos='http://cran.rstudio.com/', type = "source")
+library("MASS", lib.loc=Sys.getenv("R_LIBS_USER"))
 
-library(simstudy, lib.loc=Sys.getenv("R_LIBS_USER"))
+library("simstudy", lib.loc=Sys.getenv("R_LIBS_USER"))
 
 PS_model_data = function(n_cluster, #the number of cluster 
                          n_ind, #the number of individual 
