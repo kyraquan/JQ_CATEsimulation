@@ -19,8 +19,8 @@ repositories <- getOption("repos")
 print(repositories)
 
 #install.packages("pkg/MASS_7.3-60.tar.gz", "pkg/simstudy_0.7.0.tar.gz", dependencies = TRUE, lib=Sys.getenv("R_LIBS_USER"), repos=NULL, type = "source")
-install.packages("MASS", "simstudy", dependencies = TRUE, lib=Sys.getenv("R_LIBS_USER"), repos='http://cran.rstudio.com/', type = "source")
-library("MASS", lib.loc=Sys.getenv("R_LIBS_USER"))
+install.packages("simstudy", dependencies = TRUE, lib=Sys.getenv("R_LIBS_USER"), repos='http://cran.rstudio.com/', type = "source")
+library("MASS")
 
 library("simstudy", lib.loc=Sys.getenv("R_LIBS_USER"))
 
