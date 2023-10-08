@@ -5,8 +5,25 @@
 #           "ranger","reshape2","gridExtra","bartCause","xgboost","bartMachine","nnet")
 #install.packages(vec.pac)
 #remotes::install_github("vdorie/bartCause")
+# Get the current R version
+current_version <- R.version$version.string
 
-install.packages("MASS","simstudy", dependencies = TRUE)
+# Print the R version
+cat("Current R Version:", current_version, "\n")
+# options(repos = c(CRAN = "https://cran.r-project.org"))
+
+# Get the R repositories
+repositories <- getOption("repos")
+
+# Print the repositories
+print(repositories)
+options(install.packages.check.source = FALSE)
+options(download.file.method = "wget")
+
+install.packages("MASS","simstudy", dependencies = TRUE, lib=Sys.getenv("R_LIBS_USER"), repos='cran.us.r-project.org')
+library(MASS, lib.loc=Sys.getenv("R_LIBS_USER"))
+
+library(simstudy, lib.loc=Sys.getenv("R_LIBS_USER"))
 
 PS_model_data = function(n_cluster, #the number of cluster 
                          n_ind, #the number of individual 
@@ -19,9 +36,7 @@ PS_model_data = function(n_cluster, #the number of cluster
                          
 ) {
   # step 1: specifying the group random effect using ICC for outcome model only 
-  require(MASS)
-  
-  require(simstudy)
+
   #targetICC <- c(0.1)
   var.lev1.res = 1
   setVars <- iccRE(ICC,dist = "normal",varWithin = var.lev1.res) #variance of level-1 residual in outcome model 
