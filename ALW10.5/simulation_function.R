@@ -17,11 +17,10 @@ cat("Current R Version:", current_version, "\n")
 #install.packages("simstudy", dependencies = TRUE, lib=Sys.getenv("R_LIBS_USER"), repos='http://cran.rstudio.com/', type = "source")
 library("MASS")
 library("simstudy", lib.loc=Sys.getenv("R_LIBS_USER"))
-
 PS_model_data = function(n_cluster, #the number of cluster 
                          n_ind, #the number of individual 
-                         int=2.197225, #overall mean of ps model (intercept) to be treated; 0.8472979 - 30% treated
-                         tau_var=0.1,
+                         int, #overall mean of ps model (intercept) to be treated; 0.8472979 - 30% treated
+                         tau_var,
                          ICC, #for outcome model only,
                          ps_model, # 1=constant, 2 = no interaction, 3=interactions
                          treatment_model,# 1=constant, 2 = no interaction, 3=interaction
@@ -182,9 +181,9 @@ PS_model_data = function(n_cluster, #the number of cluster
 #' may only use easier SL for the sake of time 
 #' do testing for the time used in each method 
 
-datatest <- PS_model_data(n_cluster=60,n_ind=10,ICC=0.1,int=0.8472979,ps_model = 3,treatment_model = 1,outcome_model = 1)
+#datatest <- PS_model_data(n_cluster=60,n_ind=10,ICC=0.1,int=0.8472979,ps_model = 3,treatment_model = 1,outcome_model = 1)
 
-print(datatest)
+#print(datatest)
 #sum(datatest$trt)/40
 #16/40
 
