@@ -1,0 +1,295 @@
+NumIter =100 
+n_cluster=level2n 
+n_ind=level1n
+ICC=ICC
+tau_var=tau_var
+ps_model = PS_model
+treatment_model = treatment_model
+outcome_model = Outcome_model
+
+simulation.start = proc.time()
+
+for (i in 1:NumIter) { 
+  
+  datatest = PS_model_data(n_cluster=level2n, n_ind=level1n,ICC=ICC,tau_var=tau_var,
+                           ps_model = PS_model,treatment_model = treatment_model,outcome_model = Outcome_model)
+  
+  #split the dataset into training and test data
+  train.sample = sample(1:nrow(datatest), nrow(datatest)/2)
+  train.sample = train.sample[order(train.sample)]
+  test.sample = 1:nrow(datatest)
+  test.sample = test.sample[-c(train.sample)]
+  
+  data.train = datatest[train.sample,]
+  data.test = datatest[test.sample,]
+  data.train = as.data.frame(data.train)
+  data.test = as.data.frame(data.test)
+  
+  conditions <- c(level2n,level1n,ICC, PS_model,treatment_model,Outcome_model,Proportion,tau_var)
+  
+  #run each method 
+  
+  BARTresult <- try(BART_est(data.train,data.test),silent = F)
+  if(class(BARTresult)[[1]]=="try_error") {#is this for list? 
+    evalBART <- rep(-999,14) 
+    evalBART <- c("BART",conditions,evalBART)
+  }else{ evalBART <- Results_evaluation(BARTresult,datatest)
+  evalBART <- c("BART",conditions,evalBART)}
+  
+  #length(evalBART)
+  #evalBART[1]
+  
+  evalBART_df <- NULL
+  # Create a dataframe for this result
+  evalBART_df <- data.frame(
+    METHOD = "BART",level2n=level2n,level1n=level1n,ICC=ICC, 
+    PSmodel=PS_model,treatment_model=treatment_model,Outcomemodel=Outcome_model,tau_var=tau_var,
+    cate.PEHE_train=evalBART[10],cate.RBias_train=evalBART[11],catevar.Rbias_train=evalBART[12],
+    cate.PEHE_test=evalBART[13],cate.RBias_train=evalBART[14],catevar.Rbias_test=evalBART[15],
+    ps.MSE_train=evalBART[16],ps.corr_train=evalBART[17],ps.MSE_test=evalBART[18],ps.corr_test=evalBART[19],
+    train.ate=evalBART[20],test.ate=evalBART[21],train.ate.true=evalBART[22],test.ate.true=evalBART[23],
+    stringsAsFactors = FALSE)
+  
+  # Append result to the CSV file
+  write.table(evalBART_df, file = BARTresults, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  #write.table(t(evalBART), file = BARTresults, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  #BARTresults.cond = rbind(BARTresults.cond,append(c(evalBART)))
+  print("BART finished")
+  
+  CFresult <- try(CF_est(data.train,data.test,covariates),silent = F)
+  if(class(CFresult)[[1]] =="try_error"){
+    evalCF <-rep(-999,14) 
+    evalCF <- c("CF",conditions,evalCF)
+  }else{ evalCF <- Results_evaluation(CFresult,datatest)
+  evalCF <- c("CF",conditions,evalCF)} 
+  
+  # Create a dataframe for this result
+  evalCF_df <- data.frame(
+    METHOD = "CF",level2n=level2n,level1n=level1n,ICC=ICC, 
+    PSmodel=PS_model,treatment_model=treatment_model,Outcomemodel=Outcome_model,tau_var=tau_var,
+    cate.PEHE_train=evalCF[10],cate.RBias_train=evalCF[11],catevar.Rbias_train=evalCF[12],
+    cate.PEHE_test=evalCF[13],cate.RBias_train=evalCF[14],catevar.Rbias_test=evalCF[15],
+    ps.MSE_train=evalCF[16],ps.corr_train=evalCF[17],ps.MSE_test=evalCF[18],ps.corr_test=evalCF[19],
+    train.ate=evalCF[20],test.ate=evalCF[21],train.ate.true=evalCF[22],test.ate.true=evalCF[23],
+    stringsAsFactors = FALSE)
+  
+  write.table(evalCF_df, file = CFresults, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  
+  print("CF finished")
+  #CFresults.cond=rbind(CFresults.cond,append(conditions,evalCF))
+  
+  
+  SLearnerresult1 <- try(SLearner_est(data.test,data.train,datatest,covariates,learner="SL.cforest"),silent = F)
+  if(class(SLearnerresult1)[[1]] =="try_error") {
+    evalSL1 <-rep(-999,14)
+    evalSL1 <- c("SL1",conditions,evalSL1)
+  }else{evalSL1 <-Results_evaluation(SLearnerresult1,datatest)
+  evalSL1 <- c("SL1",conditions,evalSL1)}
+  
+  # Create a dataframe for this result
+  evalSL1_df <- data.frame(
+    METHOD = "SL1",level2n=level2n,level1n=level1n,ICC=ICC, 
+    PSmodel=PS_model,treatment_model=treatment_model,Outcomemodel=Outcome_model,tau_var=tau_var,
+    cate.PEHE_train=evalSL1[10],cate.RBias_train=evalSL1[11],catevar.Rbias_train=evalSL1[12],
+    cate.PEHE_test=evalSL1[13],cate.RBias_train=evalSL1[14],catevar.Rbias_test=evalSL1[15],
+    ps.MSE_train=evalSL1[16],ps.corr_train=evalSL1[17],ps.MSE_test=evalSL1[18],ps.corr_test=evalSL1[19],
+    train.ate=evalSL1[20],test.ate=evalSL1[21],train.ate.true=evalSL1[22],test.ate.true=evalSL1[23],
+    stringsAsFactors = FALSE)
+  
+  write.table(evalSL1_df, file = SL1results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  
+  #write.table(t(evalSL1), file = SL1results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  #SL1results.cond=rbind(SL1results.cond,append(conditions,evalSL1))
+  
+  
+  SLearnerresult2 <- try(SLearner_est(data.test,data.train,datatest,covariates,learner="SL.bartMachine"),silent = F)
+  if(class(SLearnerresult2)[[1]] =="try_error") {
+    evalSL2 <-rep(-999,14)
+    evalSL2 <- c("SL2",conditions,evalSL2)
+  }else{ evalSL2 <- Results_evaluation(SLearnerresult2,datatest)
+  evalSL2 <- c("SL2",conditions,evalSL2)}
+  
+  # Create a dataframe for this result
+  evalSL2_df <- data.frame(
+    METHOD = "SL2",level2n=level2n,level1n=level1n,ICC=ICC, 
+    PSmodel=PS_model,treatment_model=treatment_model,Outcomemodel=Outcome_model,tau_var=tau_var,
+    cate.PEHE_train=evalSL2[10],cate.RBias_train=evalSL2[11],catevar.Rbias_train=evalSL2[12],
+    cate.PEHE_test=evalSL2[13],cate.RBias_train=evalSL2[14],catevar.Rbias_test=evalSL2[15],
+    ps.MSE_train=evalSL2[16],ps.corr_train=evalSL2[17],ps.MSE_test=evalSL2[18],ps.corr_test=evalSL2[19],
+    train.ate=evalSL2[20],test.ate=evalSL2[21],train.ate.true=evalSL2[22],test.ate.true=evalSL2[23],
+    stringsAsFactors = FALSE)
+  
+  write.table(evalSL2_df, file = SL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  
+  #write.table(t(evalSL2), file = SL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  
+  #SL2results.cond=rbind(SL2results.cond,append(conditions,evalSL2))
+  
+  
+  SLearnerresult3 <- try(SLearner_est(data.test,data.train,datatest,covariates,learner=c("SL.cforest","SL.bartMachine")),silent = F)
+  if(class(SLearnerresult3)[[1]] =="try_error") {
+    evalSL3 <-rep(-999,14)
+    evalSL3 <- c("SL3",conditions,evalSL3)
+  }else{evalSL3 <- Results_evaluation(SLearnerresult3,datatest)
+  evalSL3 <- c("SL3",conditions,evalSL3) }
+  #write.table(t(evalSL3), file = SL3results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  
+  evalSL3_df <- data.frame(
+    METHOD = "SL3",level2n=level2n,level1n=level1n,ICC=ICC, 
+    PSmodel=PS_model,treatment_model=treatment_model,Outcomemodel=Outcome_model,tau_var=tau_var,
+    cate.PEHE_train=evalSL3[10],cate.RBias_train=evalSL3[11],catevar.Rbias_train=evalSL3[12],
+    cate.PEHE_test=evalSL3[13],cate.RBias_train=evalSL3[14],catevar.Rbias_test=evalSL3[15],
+    ps.MSE_train=evalSL3[16],ps.corr_train=evalSL3[17],ps.MSE_test=evalSL3[18],ps.corr_test=evalSL3[19],
+    train.ate=evalSL3[20],test.ate=evalSL3[21],train.ate.true=evalSL3[22],test.ate.true=evalSL3[23],
+    stringsAsFactors = FALSE)
+  
+  write.table(evalSL3_df, file = SL3results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  
+  print("SL finished")
+  #SL3results.cond=rbind(SL3results.cond,append(conditions,evalSL3))
+  
+  
+  TLearnerresult1 <- try(TLearner_est(data.test,data.train,datatest,covariates,learner="SL.cforest"),silent = F)
+  if(class(TLearnerresult1)[[1]] =="try_error") {
+    evalTL1 <-rep(-999,14)
+    evalTL1 <- c("TL1",conditions,evalTL1) 
+  }else{evalTL1 <- Results_evaluation(TLearnerresult1,datatest)
+  evalTL1 <- c("TL1",conditions,evalTL1) }
+  #write.table(t(evalTL1), file = TL1results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  #TL1results.cond=rbind(TL1results.cond,append(conditions,evalTL1))
+  # Create a dataframe for this result
+  evalTL1_df <- data.frame(
+    METHOD = "TL1",level2n=level2n,level1n=level1n,ICC=ICC, 
+    PSmodel=PS_model,treatment_model=treatment_model,Outcomemodel=Outcome_model,tau_var=tau_var,
+    cate.PEHE_train=evalTL1[10],cate.RBias_train=evalTL1[11],catevar.Rbias_train=evalTL1[12],
+    cate.PEHE_test=evalTL1[13],cate.RBias_train=evalTL1[14],catevar.Rbias_test=evalTL1[15],
+    ps.MSE_train=evalTL1[16],ps.corr_train=evalTL1[17],ps.MSE_test=evalTL1[18],ps.corr_test=evalTL1[19],
+    train.ate=evalTL1[20],test.ate=evalTL1[21],train.ate.true=evalTL1[22],test.ate.true=evalTL1[23],
+    stringsAsFactors = FALSE)
+  
+  write.table(evalTL1_df, file = TL1results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  
+  
+  
+  
+  TLearnerresult2 <- try(TLearner_est(data.test,data.train,datatest,covariates,learner="SL.bartMachine"),silent = F)
+  if(class(TLearnerresult2)[[1]] =="try_error") {
+    evalTL2 <-rep(-999,14)
+    evalTL2 <- c("TL2",conditions,evalTL2)
+  }else{evalTL2 <- Results_evaluation(TLearnerresult2,datatest)
+  evalTL2 <- c("TL2",conditions,evalTL2) }
+  #write.table(t(evalTL2), file = TL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  #TL2results.cond=rbind(TL2results.cond,append(conditions,evalTL2))
+  evalTL2_df <- data.frame(
+    METHOD = "TL2",level2n=level2n,level1n=level1n,ICC=ICC, 
+    PSmodel=PS_model,treatment_model=treatment_model,Outcomemodel=Outcome_model,tau_var=tau_var,
+    cate.PEHE_train=evalTL2[10],cate.RBias_train=evalTL2[11],catevar.Rbias_train=evalTL2[12],
+    cate.PEHE_test=evalTL2[13],cate.RBias_train=evalTL2[14],catevar.Rbias_test=evalTL2[15],
+    ps.MSE_train=evalTL2[16],ps.corr_train=evalTL2[17],ps.MSE_test=evalTL2[18],ps.corr_test=evalTL2[19],
+    train.ate=evalTL2[20],test.ate=evalTL2[21],train.ate.true=evalTL2[22],test.ate.true=evalTL2[23],
+    stringsAsFactors = FALSE)
+  
+  write.table(evalTL2_df, file = TL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  
+  
+  
+  TLearnerresult3 <- try(TLearner_est(data.test,data.train,datatest,covariates,learner=c("SL.cforest","SL.bartMachine")),silent = F)
+  if(class(TLearnerresult3)[[1]] =="try_error") {
+    evalTL3 <-rep(-999,14)
+    evalTL3 <- c("TL3",conditions,evalTL3) 
+  }else{evalTL3 <- Results_evaluation(TLearnerresult3,datatest)
+  evalTL3 <- c("TL3",conditions,evalTL3) }
+  #write.table(t(evalTL3), file = TL1results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  #TL3results.cond=rbind(TL3results.cond,append(conditions,evalTL3))
+  evalTL3_df <- data.frame(
+    METHOD = "TL3",level2n=level2n,level1n=level1n,ICC=ICC, 
+    PSmodel=PS_model,treatment_model=treatment_model,Outcomemodel=Outcome_model,tau_var=tau_var,
+    cate.PEHE_train=evalTL3[10],cate.RBias_train=evalTL3[11],catevar.Rbias_train=evalTL3[12],
+    cate.PEHE_test=evalTL3[13],cate.RBias_train=evalTL3[14],catevar.Rbias_test=evalTL3[15],
+    ps.MSE_train=evalTL3[16],ps.corr_train=evalTL3[17],ps.MSE_test=evalTL3[18],ps.corr_test=evalTL3[19],
+    train.ate=evalTL3[20],test.ate=evalTL3[21],train.ate.true=evalTL3[22],test.ate.true=evalTL3[23],
+    stringsAsFactors = FALSE)
+  
+  write.table(evalTL3_df, file = TL3results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  
+  print("TL finished")
+  
+  
+  XLearnerresult1 <- try(XLearner_est(data.test,data.train,datatest,covariates,learner="SL.cforest"),silent = F)
+  if(class(XLearnerresult1)[[1]] =="try_error") {  
+    evalXL1 <-rep(-999,14)
+    evalXL1 <- c("XL1",conditions,evalXL1)
+  }else{evalXL1 <- Results_evaluation(XLearnerresult1,datatest)
+  evalXL1 <- c("XL1",conditions,evalXL1) }
+  #write.table(t(evalXL1), file = XL1results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  #XL1results.cond=rbind(XL1results.cond,append(conditions,evalXL1))
+  evalXL1_df <- data.frame(
+    METHOD = "XL1",level2n=level2n,level1n=level1n,ICC=ICC, 
+    PSmodel=PS_model,treatment_model=treatment_model,Outcomemodel=Outcome_model,tau_var=tau_var,
+    cate.PEHE_train=evalXL1[10],cate.RBias_train=evalXL1[11],catevar.Rbias_train=evalXL1[12],
+    cate.PEHE_test=evalXL1[13],cate.RBias_train=evalXL1[14],catevar.Rbias_test=evalXL1[15],
+    ps.MSE_train=evalXL1[16],ps.corr_train=evalXL1[17],ps.MSE_test=evalXL1[18],ps.corr_test=evalXL1[19],
+    train.ate=evalXL1[20],test.ate=evalXL1[21],train.ate.true=evalXL1[22],test.ate.true=evalXL1[23],
+    stringsAsFactors = FALSE)
+  
+  write.table(evalXL1_df, file = XL1results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  
+  
+  
+  
+  
+  XLearnerresult2 <- try(XLearner_est(data.test,data.train,datatest,covariates,learner="SL.bartMachine"),silent = F)
+  if(class(XLearnerresult2)[[1]] =="try_error") {
+    evalXL2 <-rep(-999,14)
+    evalXL2 <- c("XL2",conditions,evalXL2) 
+  }else{evalXL2 <- Results_evaluation(XLearnerresult2,datatest)
+  evalXL2 <- c("XL2",conditions,evalXL2) }
+  #write.table(t(evalXL2), file = XL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  #XL2results.cond=rbind(XL2results.cond,append(conditions,evalXL2))
+  evalXL2_df <- data.frame(
+    METHOD = "XL2",level2n=level2n,level1n=level1n,ICC=ICC, 
+    PSmodel=PS_model,treatment_model=treatment_model,Outcomemodel=Outcome_model,tau_var=tau_var,
+    cate.PEHE_train=evalXL2[10],cate.RBias_train=evalXL2[11],catevar.Rbias_train=evalXL2[12],
+    cate.PEHE_test=evalXL2[13],cate.RBias_train=evalXL2[14],catevar.Rbias_test=evalXL2[15],
+    ps.MSE_train=evalXL2[16],ps.corr_train=evalXL2[17],ps.MSE_test=evalXL2[18],ps.corr_test=evalXL2[19],
+    train.ate=evalXL2[20],test.ate=evalXL2[21],train.ate.true=evalXL2[22],test.ate.true=evalXL2[23],
+    stringsAsFactors = FALSE)
+  
+  write.table(evalXL2_df, file = XL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  
+  
+  
+  
+  XLearnerresult3 <- try(XLearner_est(data.test,data.train,datatest,covariates,learner=c("SL.cforest","SL.bartMachine")),silent = F)
+  if(class(XLearnerresult3)[[1]] =="try_error") {
+    evalXL3 <-rep(-999,14)
+    evalXL3 <- c("XL3",conditions,evalXL3) 
+  }else{evalXL3 <- Results_evaluation(XLearnerresult3,datatest)
+  evalXL3 <- c("XL3",conditions,evalXL3) }
+  #write.table(t(evalXL1), file = XL1results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  #XL3results.cond=rbind(XL3results.cond,append(conditions,evalXL3))
+  evalXL3_df <- data.frame(
+    METHOD = "XL3",level2n=level2n,level1n=level1n,ICC=ICC, 
+    PSmodel=PS_model,treatment_model=treatment_model,Outcomemodel=Outcome_model,tau_var=tau_var,
+    cate.PEHE_train=evalXL3[10],cate.RBias_train=evalXL3[11],catevar.Rbias_train=evalXL3[12],
+    cate.PEHE_test=evalXL3[13],cate.RBias_train=evalXL3[14],catevar.Rbias_test=evalXL3[15],
+    ps.MSE_train=evalXL3[16],ps.corr_train=evalXL3[17],ps.MSE_test=evalXL3[18],ps.corr_test=evalXL3[19],
+    train.ate=evalXL3[20],test.ate=evalXL3[21],train.ate.true=evalXL3[22],test.ate.true=evalXL3[23],
+    stringsAsFactors = FALSE)
+  
+  write.table(evalXL3_df, file = XL3results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  
+  
+  
+  print("XL finished")
+  
+  #results.cond = rbind(results.cond,append(conditions,analysis))
+  
+  #count number of iterations so far.
+  #count number of iterations so far.
+  Iters.run = Iters.run + 1
+  print(i)
+}
+
+simulation.end = proc.time()
+total.time = simulation.end - simulation.start
