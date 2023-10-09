@@ -152,7 +152,8 @@ conditions <- c(level2n,level1n,ICC, PS_model,treatment_model,Outcome_model,Prop
 
 #run each method 
 
-clusterExport(cl, c("Results_evaluation", "conditions", "level2n", "level1n", "ICC", "PS_model","treatment_model","Outcome_model","Proportion","tau_var", "BARTresults",
+clusterExport(cl, c("Results_evaluation", "conditions", "level2n", "level1n", "ICC", "PS_model","treatment_model","Outcome_model","Proportion","tau_var", 
+                   "BARTresults",
                     "CFresults",
                     "SL1results",
                     "SL2results",
@@ -450,16 +451,16 @@ print(paste("Finished iteration ", i))
 } #close the while loop
 
 storage_upload(cont, src=BARTresults, dest=assemble_path(job_id, task_id, BARTresults))
-storage_upload(cont, src=BARTresults, dest=assemble_path(job_id, task_id, CFresults))
-storage_upload(cont, src=BARTresults, dest=assemble_path(job_id, task_id, SL1results))
-storage_upload(cont, src=BARTresults, dest=assemble_path(job_id, task_id, SL2results))
-storage_upload(cont, src=BARTresults, dest=assemble_path(job_id, task_id, SL3results))
-storage_upload(cont, src=BARTresults, dest=assemble_path(job_id, task_id, TL1results))
-storage_upload(cont, src=BARTresults, dest=assemble_path(job_id, task_id, TL2results))
-storage_upload(cont, src=BARTresults, dest=assemble_path(job_id, task_id, TL3results))
-storage_upload(cont, src=BARTresults, dest=assemble_path(job_id, task_id, XL1results))
-storage_upload(cont, src=BARTresults, dest=assemble_path(job_id, task_id, XL2results))
-storage_upload(cont, src=BARTresults, dest=assemble_path(job_id, task_id, XL3results))
+storage_upload(cont, src=CFresults, dest=assemble_path(job_id, task_id, CFresults))
+storage_upload(cont, src=SL1results, dest=assemble_path(job_id, task_id, SL1results))
+storage_upload(cont, src=SL2results, dest=assemble_path(job_id, task_id, SL2results))
+storage_upload(cont, src=SL3results, dest=assemble_path(job_id, task_id, SL3results))
+storage_upload(cont, src=TL1results, dest=assemble_path(job_id, task_id, TL1results))
+storage_upload(cont, src=TL2results, dest=assemble_path(job_id, task_id, TL2results))
+storage_upload(cont, src=TL3results, dest=assemble_path(job_id, task_id, TL3results))
+storage_upload(cont, src=XL1results, dest=assemble_path(job_id, task_id, XL1results))
+storage_upload(cont, src=XL2results, dest=assemble_path(job_id, task_id, XL2results))
+storage_upload(cont, src=XL3results, dest=assemble_path(job_id, task_id, XL3results))
 
 
 #end.time = proc.time()
