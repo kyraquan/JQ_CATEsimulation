@@ -114,7 +114,7 @@ XLearner_est <- function(data.train, data.test, datatest,covariates,learner){
   SL.train.CATE <- cbind(train.id, score_X[train.id])
   
   SL.test.ps <- cbind(test.id,pseudo_all[,2][test.id])
-  SL.test.CATE <- cbind(test.id,pseudo_all[,2][test.id])
+  SL.test.CATE <- cbind(test.id,score_X[test.id])
   
   SL.results <- list(SL.train.CATE,SL.test.CATE,SL.train.ps,SL.test.ps)
   
