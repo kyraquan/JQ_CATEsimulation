@@ -86,7 +86,7 @@ return(s.forest.cate.list)
 
 
 #datatest <- PS_model_data(n_cluster=30, n_ind=10,tau_var = 0.47, ICC=0.3,
-                          ps_model=2,treatment_model = 1,outcome_model = 3)
+                          # ps_model=2,treatment_model = 1,outcome_model = 3)
 #testsplits <- test.train.split(datatest)
 #data.train <- testsplits[[1]]
 #data.test <- testsplits[[2]]
