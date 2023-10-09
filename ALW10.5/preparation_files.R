@@ -92,7 +92,7 @@ write.table(headers, file = XL3results, sep = ",", row.names = FALSE, quote = FA
 
 
 
-NumIter=100 #ideal 1000 
+NumIter=1 #ideal 1000 
 simulation.start = proc.time()
 
 #committee to read the articles get dissertation to committee on 20th. 2 weeks and a half. 

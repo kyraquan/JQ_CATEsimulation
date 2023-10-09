@@ -1,18 +1,17 @@
-#!/bin/sh
 #SBATCH --job-name=all_conditions_job
 #SBATCH --output=all_conditions_job_%A_%a.out
 #SBATCH --error=all_conditions_job_%A_%a.err
-#SBATCH --array=2-3  # Define the range of array indices
+#SBATCH --array=2-433%40  # Define the range of array indices
 #SBATCH --cpus-per-task=12
-#SBATCH --mem=8gb
-#SBATCH --time=01:05:00
+#SBATCH --mem=16gb
+#SBATCH --time=48:05:00
 
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=kyra.qj+hypergator@gmail.com
 
 
 
-pwd; hostname; 
+pwd; hostname;
 module load R/4.3
 
 
@@ -39,6 +38,8 @@ mkdir -p "$git_path"
 git clone https://github.com/kyraquan/JQ_CATEsimulation.git "$git_path"
 cd "$git_path/ALW10.5"
 
+export access_sas="{Azure_SAS_TOKEN}"
+
 # Define the specific column headers
 headers=("level2n" "level1n" "ICC" "PS_model" "treatment_model" "Outcome_model" "tau_var")
 
@@ -55,3 +56,7 @@ for header in "${headers[@]}"; do
 done
 
 Rscript preparation_files.R
+
+# Clean up aftewards
+cd "$current_directory"
+rm -rf "${SLURM_ARRAY_TASK_ID}"
