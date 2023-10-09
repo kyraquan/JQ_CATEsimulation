@@ -20,7 +20,7 @@ TLearner_est <- function(data.test,data.train,datatest,covariates,learner){
                         id=data.train.1$School_id,
                         verbose = FALSE, method = "method.NNLS")
   train.m1 <- m1_mod$SL.predict
-  test.m1 <- predict(m1_mod,newdata=data.test[,covariates],id=data.test$schoolid)$pred
+  test.m1 <- predict(m1_mod,newdata=data.test[,covariates],id=data.test$School_id)$pred
   
   m0_mod <- SuperLearner(Y=data.train.0$yij,
                          X=data.train.0[,covariates],
@@ -28,7 +28,7 @@ TLearner_est <- function(data.test,data.train,datatest,covariates,learner){
                          id=data.train.0$School_id,
                          verbose = FALSE, method = "method.NNLS")
   train.m0 <- m0_mod$SL.predict
-  test.m0 <- predict(m0_mod,newdata=data.test[,covariates],id=data.test$schoolid)$pred
+  test.m0 <- predict(m0_mod,newdata=data.test[,covariates],id=data.test$School_id)$pred
   
   #estimate CATE of test
   score_T <- matrix(0,nrow(datatest),1)
@@ -36,8 +36,8 @@ TLearner_est <- function(data.test,data.train,datatest,covariates,learner){
   score_T[,1][data.test$Stu_id] <- tlearner.test.cate
   
   #estimate CATE of train 
-  train.m1 <- predict(m1_mod,newdata=data.train[,covariates],id=data.train$schoolid)$pred
-  train.m0 <- predict(m0_mod,newdata=data.train[,covariates],id=data.train$schoolid)$pred
+  train.m1 <- predict(m1_mod,newdata=data.train[,covariates],id=data.train$School_id)$pred
+  train.m0 <- predict(m0_mod,newdata=data.train[,covariates],id=data.train$School_id)$pred
   tlearner.train.cate <- train.m1 - train.m0
   score_T[,1][data.train$Stu_id] <- tlearner.train.cate
   
