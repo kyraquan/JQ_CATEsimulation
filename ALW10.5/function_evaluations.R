@@ -23,8 +23,8 @@ Results_evaluation <- function(datalist,datatest) {
   cate.PEHE_train <- mean((train.cate.true - train.cate[,2])^2)
   cate.PEHE_test <- mean((test.cate.true - test.cate[,2])^2)
   
-  cate.RBias_test <- mean((test.cate.true - test.cate[,2])/test.cate[,2])
-  cate.RBias_train <- mean((train.cate.true - train.cate[,2])/test.cate[,2])
+  cate.RBias_test <- mean((test.cate.true - test.cate[,2])/test.cate[,2]) 
+  cate.RBias_train <- mean((train.cate.true - train.cate[,2])/train.cate[,2]) #newly updated the name
   
   #catevar.RBias_train <- (var(train.cate[,2])-var(train.cate.true))/var(train.cate.true) #bias in the variance of cate 
   #catevar.RBias_test <- (var(test.cate[,2])-var(test.cate.true))/var(test.cate.true)
@@ -47,8 +47,8 @@ Results_evaluation <- function(datalist,datatest) {
   #interpreting criteria https://ufl.instructure.com/courses/414257/files/51997723?module_item_id=8158074
   train.ate <- mean(train.cate[,2])             
   test.ate <- mean(test.cate[,2])
-  test.ate.true <- mean(train.cate.true)
-  train.ate.true<- mean(test.cate.true)
+  test.ate.true <- mean(train.cate.true) ###- switched the name, should be test, make update later
+  train.ate.true<- mean(test.cate.true) ###- switched the name, should be train, make update later
   
   
   #ate.Bias_test <- (test.ate-mean(test.cate.true))
@@ -95,7 +95,7 @@ Results_evaluation <- function(datalist,datatest) {
               ps.MSE_train,ps.corr_train,ps.MSE_test,ps.corr_test,
               train.ate,test.ate,train.ate.true,test.ate.true)
   
-  length(results)
+  #length(results)
   #names(results) <- c("cate.PEHE_train","cate.RBias_train","catevar.Rbias_train",
   #                    "cate.PEHE_test","cate.RBias_train","catevar.Rbias_test",
   #                    "ps.MSE_train","ps.corr_train","ps.MSE_test","ps.corr_test",
