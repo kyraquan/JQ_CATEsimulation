@@ -15,8 +15,8 @@ cat("Current R Version:", current_version, "\n")
 # Only install simustudy because Mass is already installed per https://help.rc.ufl.edu/doc/R
 # Additional packages need to be installed as personal library due to hyper gator permission issue
 #install.packages("simstudy", dependencies = TRUE, lib=Sys.getenv("R_LIBS_USER"), repos='http://cran.rstudio.com/', type = "source")
-# library("MASS", lib.loc=Sys.getenv("R_LIBS_USER"))
-# library("simstudy", lib.loc=Sys.getenv("R_LIBS_USER"))
+library("MASS", lib.loc=Sys.getenv("R_LIBS_USER"))
+library("simstudy", lib.loc=Sys.getenv("R_LIBS_USER"))
 PS_model_data = function(n_cluster, #the number of cluster 
                          n_ind, #the number of individual 
                          int, #overall mean of ps model (intercept) to be treated; 0.8472979 - 30% treated
