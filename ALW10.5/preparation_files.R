@@ -23,7 +23,7 @@ library(parallel)
 library(bartCause)
 library(grf)
 library(AzureStor)
-numCores <- 6
+numCores <- 5
 
 print(paste("Number of Cores", numCores))
 
