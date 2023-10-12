@@ -21,7 +21,7 @@ print("source loaded")
 # Load the parallel package
 library(parallel)
 library(AzureStor)
-numCores <- 5
+numCores <- 2
 
 print(paste("Number of Cores", numCores))
 
