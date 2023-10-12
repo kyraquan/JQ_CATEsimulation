@@ -1,11 +1,9 @@
-install.packages(c("party", "readstata13", "grf", "AzureStor"), dependencies = TRUE, lib=Sys.getenv("R_LIBS_USER"), repos='http://cran.rstudio.com/')
+install.packages(c("simustudy", "MASS", "mvtnorm", "party", "readstata13", "grf",  "SuperLearner", "bartMachine", "AzureStor"), dependencies = TRUE, lib=Sys.getenv("R_LIBS_USER"), repos='http://cran.rstudio.com/')
 #remotes::install_github("vdorie/bartCause", dependencies = TRUE, lib=Sys.getenv("R_LIBS_USER"))
-install.packages(c("party", "readstata13", "grf", "AzureStor"), dependencies = TRUE, lib=Sys.getenv("R_LIBS_USER"), repos='http://cran.rstudio.com/')
 
-source("function_CFxlearner.R")
-
+source("simulation_function.R")
 source("function_evaluations.R")
-
+source("function_BARTxlearner.R")
 
 print("source loaded")
 
@@ -25,7 +23,7 @@ assemble_path <- function(job_id, task_id, file_name) {
   return(path)
 }
 
-CFXL1results <- "CFXL1results.csv"
+BARTXL2results <- "BARTXL2results.csv"
 
 headers<-data.frame( METHOD = character(),
                      level2n=numeric(),level1n=numeric(),ICC=numeric(), PSmodel=numeric(),treatment_model=numeric(),Outcomemodel=numeric(),
@@ -36,7 +34,7 @@ headers<-data.frame( METHOD = character(),
                      train.ate=numeric(),test.ate=numeric(),train.ate.true=numeric(),test.ate.true=numeric(),
                      stringsAsFactors = FALSE)
 
-write.table(headers, file = CFXL1results, sep = ",", row.names = FALSE, quote = FALSE)
+write.table(headers, file = BARTXL2results, sep = ",", row.names = FALSE, quote = FALSE)
 
 
 NumIter=100 #ideal 1000 
@@ -68,11 +66,11 @@ Proportion=0.8472979
 
 for (i in 1:NumIter) { 
 
-datatest = read.csv(paste0(i,".csv"))
-datatest$School_id = factor(datatest$School_id)
+# datatest = read.csv(paste0(i,".csv"))
+# datatest$School_id = factor(datatest$School_id)
 
-#datatest = PS_model_data(n_cluster=level2n, n_ind=level1n,ICC=ICC,int=Proportion,tau_var=tau_var,
- #                        ps_model = PS_model,treatment_model = treatment_model,outcome_model = Outcome_model)
+datatest = PS_model_data(n_cluster=level2n, n_ind=level1n,ICC=ICC,int=Proportion,tau_var=tau_var,
+                        ps_model = PS_model,treatment_model = treatment_model,outcome_model = Outcome_model)
 
 #split the dataset into training and test data
 train.sample = sample(1:nrow(datatest), nrow(datatest)/2)
@@ -87,30 +85,30 @@ data.test = as.data.frame(data.test)
 
 conditions <- c(level2n,level1n,ICC, PS_model,treatment_model,Outcome_model,Proportion,tau_var)
 
-CFXL1results <- try(CF_Xlearner(data.train,data.test,datatest),silent = F)
-if(class(CFXL1results)[[1]] =="try_error") {
-  evalCFXL1 <-rep(-999,14)
-  evalCFXL1 <- c("CFXL1",conditions,evalCFXL1)
-}else{evalCFXL1 <- Results_evaluation(CFXL1results,datatest)
-evalCFXL1 <- c("CFXL1",conditions,evalXL2) }
+BARTXL2results <- try(BART_Xlearner(data.train,data.test,datatest),silent = F)
+if(class(BARTXL2results)[[1]] =="try_error") {
+  evalXL2bart <-rep(-999,14)
+  evalXL2bart <- c("BARTXL2",conditions,evalXL2bart)
+}else{evalXL2bart <- Results_evaluation(BARTXL2results,datatest)
+evalXL2bart <- c("BARTXL2",conditions,evalXL2) }
 #write.table(t(evalXL2), file = XL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
 #XL2results.cond=rbind(XL2results.cond,append(conditions,evalXL2))
-evalCFXL1_df <- data.frame(
-  METHOD = "CFXL1",level2n=level2n,level1n=level1n,ICC=ICC, 
+evalXL2bart_df <- data.frame(
+  METHOD = "BARTXL2",level2n=level2n,level1n=level1n,ICC=ICC, 
   PSModel=PS_model,treatment_model=treatment_model,Outcomemodel=Outcome_model,Proportion=Proportion,tau_var=tau_var,
-  cate.PEHE_train=evalCFXL1[10],cate.RBias_train=evalCFXL1[11],catevar.Rbias_train=evalCFXL1[12],
-  cate.PEHE_test=evalCFXL1[13],cate.RBias_train=evalCFXL1[14],catevar.Rbias_test=evalCFXL1[15],
-  ps.MSE_train=evalCFXL1[16],ps.corr_train=evalCFXL1[17],ps.MSE_test=evalCFXL1[18],ps.corr_test=evalCFXL1[19],
-  train.ate=evalCFXL1[20],test.ate=evalCFXL1[21],train.ate.true=evalCFXL1[22],test.ate.true=evalCFXL1[23],
+  cate.PEHE_train=evalXL2bart[10],cate.RBias_train=evalXL2bart[11],catevar.Rbias_train=evalXL2bart[12],
+  cate.PEHE_test=evalXL2bart[13],cate.RBias_train=evalXL2bart[14],catevar.Rbias_test=evalXL2bart[15],
+  ps.MSE_train=evalXL2bart[16],ps.corr_train=evalXL2bart[17],ps.MSE_test=evalXL2bart[18],ps.corr_test=evalXL2bart[19],
+  train.ate=evalXL2bart[20],test.ate=evalXL2bart[21],train.ate.true=evalXL2bart[22],test.ate.true=evalXL2bart[23],
   stringsAsFactors = FALSE)
 
-write.table(evalCFXL1_df, file = CFXL1results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+write.table(evalXL2bart_df, file = BARTXL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
 
 print(paste("Finished iteration ", i))
 } #close the while loop
 
 
-storage_upload(cont, src=CFXL1results, dest=assemble_path("non-parrelel-run", task_id, CFXL1results))
+storage_upload(cont, src=BARTXL2results, dest=assemble_path("non-parrelel-run", task_id, BARTXL2results))
 
 
 simulation.end = proc.time()

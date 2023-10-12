@@ -65,11 +65,11 @@ Proportion=0.8472979
 
 for (i in 1:NumIter) { 
 
-datatest = read.csv(paste0(i,".csv"))
-datatest$School_id = factor(datatest$School_id)
+# datatest = read.csv(paste0(i,".csv"))
+# datatest$School_id = factor(datatest$School_id)
 
-#datatest = PS_model_data(n_cluster=level2n, n_ind=level1n,ICC=ICC,int=Proportion,tau_var=tau_var,
- #                        ps_model = PS_model,treatment_model = treatment_model,outcome_model = Outcome_model)
+datatest = PS_model_data(n_cluster=level2n, n_ind=level1n,ICC=ICC,int=Proportion,tau_var=tau_var,
+                        ps_model = PS_model,treatment_model = treatment_model,outcome_model = Outcome_model)
 
 #split the dataset into training and test data
 train.sample = sample(1:nrow(datatest), nrow(datatest)/2)

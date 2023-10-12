@@ -1,28 +1,16 @@
-#install.packages("devtools")
-#devtools::install_github("PolMine/RcppCWB")
-
-#vec.pac= c("foreign", "quantreg", "gbm", "glmnet","MASS",
-         #  "rpart", "nnet", "matrixStats",
-     #      "xtable",
-     #      "caret",  "multcomp","cowplot",
-     #      "ranger","reshape2","gridExtra","xgboost",
-    #       "tidyverse")
 
 # separate installation [simstudy, readstata13, grf, remotes, SuperLearner, bartCause, bartMachine,googlesheets4, googledrive]
 #install.packages(vec.pac)
 install.packages(c("simstudy", "party", "readstata13", "grf",  "SuperLearner", "bartMachine", "AzureStor"), dependencies = TRUE, lib=Sys.getenv("R_LIBS_USER"), repos='http://cran.rstudio.com/')
 remotes::install_github("vdorie/bartCause", dependencies = TRUE, lib=Sys.getenv("R_LIBS_USER"))
 
-#install.packages("bartMachine")
-#install.packages("rJava")
-#install.packages("Rtools")
-#install.packages("PKI", type="source")
-
-#library(tidyverse)
 
 source("simulation_function.R")
 source("function_BART.R")
 source("function_CF.R")
+source("function_CFxlearner.R")
+source("function_BARTxlearner.R")
+source("function_BARTtlearner.R")
 source("function_evaluations.R")
 source("function_SLearner_est.R")
 source("function_TLearner_est.R")
@@ -33,7 +21,7 @@ print("source loaded")
 # Load the parallel package
 library(parallel)
 library(AzureStor)
-numCores <- detectCores() - 1
+numCores <- 6
 cl <- makeCluster(numCores)
 print(paste("Number of Cores", numCores))
 
@@ -62,6 +50,9 @@ TL3results <- "TL3results.csv"
 XL1results <- "XL1results.csv"
 XL2results <- "XL2results.csv"
 XL3results <- "XL3results.csv"
+BARTXL2results <- "BARTXL2results.csv"
+CFXL1results <- "CFXL1results.csv"
+BARTTL2results <- "BARTTL2results.csv"
 
 # Assuming this file doesn't exist yet or you want to overwrite any previous content.
 #if (file.exists(file_name)) {
@@ -116,21 +107,8 @@ treatment_model <- as.numeric(treatment_model_str)
 Outcome_model <- as.numeric(Outcome_model_str)
 tau_var <- as.numeric(tau_var_str)
 
-#for (level2n in c(60,200,500)) { #number of groups 
-#for (level1n in c(10,30,60)) { #number of individuals 
-#   for (ICC in c(0.1,0.3)) { #ICC, 0.1, 0.3 
-#    for (PS_model in c(1,2,3)) {#propensity score model
-#      for (treatment_model in c(1,2,3)) { #CATE model 
-#        for (Outcome_model in c(1,2,3)) { #Outcome model 
-#        for (Proportion in c(2.197225,0.8472979)) { #proportion treated 
-#           for (tau_var in c(0.1,0.47)) {
 
 Proportion=0.8472979
-#results.cond = NULL  #storage of results for each condition.
-#i = 1 #initiates the count of converged iterations
-#Iters.run = 0 #initiates the count of iterations run.
-#start.time = proc.time() #store starting computer time.
-
 
 for (i in 1:NumIter) { 
 
@@ -171,8 +149,6 @@ clusterExport(cl, c("Results_evaluation", "conditions", "level2n", "level1n", "I
 tasks <- list(
   function() {
     ############################### BART analysis
-    
-    
     BARTresult <- try(BART_est(data.train,data.test),silent = F)
     if(class(BARTresult)[[1]]=="try_error") {#is this for list? 
       evalBART <- rep(-999,14) 
@@ -226,6 +202,49 @@ tasks <- list(
     #CFresults.cond=rbind(CFresults.cond,append(conditions,evalCF))
     ########### CF finished 
   },
+    function() {
+   CFXL1results <- try(CF_Xlearner(data.train,data.test,datatest),silent = F)
+if(class(CFXL1results)[[1]] =="try_error") {
+  evalCFXL1 <-rep(-999,14)
+  evalCFXL1 <- c("CFXL1",conditions,evalCFXL1)
+}else{evalCFXL1 <- Results_evaluation(CFXL1results,datatest)
+evalCFXL1 <- c("CFXL1",conditions,evalXL2) }
+#write.table(t(evalXL2), file = XL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+#XL2results.cond=rbind(XL2results.cond,append(conditions,evalXL2))
+evalCFXL1_df <- data.frame(
+  METHOD = "CFXL1",level2n=level2n,level1n=level1n,ICC=ICC, 
+  PSModel=PS_model,treatment_model=treatment_model,Outcomemodel=Outcome_model,Proportion=Proportion,tau_var=tau_var,
+  cate.PEHE_train=evalCFXL1[10],cate.RBias_train=evalCFXL1[11],catevar.Rbias_train=evalCFXL1[12],
+  cate.PEHE_test=evalCFXL1[13],cate.RBias_train=evalCFXL1[14],catevar.Rbias_test=evalCFXL1[15],
+  ps.MSE_train=evalCFXL1[16],ps.corr_train=evalCFXL1[17],ps.MSE_test=evalCFXL1[18],ps.corr_test=evalCFXL1[19],
+  train.ate=evalCFXL1[20],test.ate=evalCFXL1[21],train.ate.true=evalCFXL1[22],test.ate.true=evalCFXL1[23],
+  stringsAsFactors = FALSE)
+
+write.table(evalCFXL1_df, file = CFXL1results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+    
+    
+  },
+  function() {
+  BARTXL2results <- try(BART_Xlearner(data.train,data.test,datatest),silent = F)
+if(class(BARTXL2results)[[1]] =="try_error") {
+  evalXL2bart <-rep(-999,14)
+  evalXL2bart <- c("BARTXL2",conditions,evalXL2bart)
+}else{evalXL2bart <- Results_evaluation(BARTXL2results,datatest)
+evalXL2bart <- c("BARTXL2",conditions,evalXL2) }
+#write.table(t(evalXL2), file = XL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+#XL2results.cond=rbind(XL2results.cond,append(conditions,evalXL2))
+evalXL2bart_df <- data.frame(
+  METHOD = "BARTXL2",level2n=level2n,level1n=level1n,ICC=ICC, 
+  PSModel=PS_model,treatment_model=treatment_model,Outcomemodel=Outcome_model,Proportion=Proportion,tau_var=tau_var,
+  cate.PEHE_train=evalXL2bart[10],cate.RBias_train=evalXL2bart[11],catevar.Rbias_train=evalXL2bart[12],
+  cate.PEHE_test=evalXL2bart[13],cate.RBias_train=evalXL2bart[14],catevar.Rbias_test=evalXL2bart[15],
+  ps.MSE_train=evalXL2bart[16],ps.corr_train=evalXL2bart[17],ps.MSE_test=evalXL2bart[18],ps.corr_test=evalXL2bart[19],
+  train.ate=evalXL2bart[20],test.ate=evalXL2bart[21],train.ate.true=evalXL2bart[22],test.ate.true=evalXL2bart[23],
+  stringsAsFactors = FALSE)
+
+write.table(evalXL2bart_df, file = BARTXL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+   # write.table(evalXL2_df, file = XL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+  },
   function() {
     ######## SL1 anal
     SLearnerresult1 <- try(SLearner_est(data.test,data.train,datatest,covariates,learner="SL.cforest"),silent = F)
@@ -249,11 +268,29 @@ tasks <- list(
     
     #write.table(t(evalSL1), file = SL1results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
     #SL1results.cond=rbind(SL1results.cond,append(conditions,evalSL1))
-    
-    
   },
   function() {
-    
+    BARTTL2results <- try(TLearner_est(data.test,data.train,datatest),silent = F)
+if(class(BARTTL2results)[[1]] =="try_error") {
+  evalTL2bart <-rep(-999,14)
+  evalTL2bart <- c("BARTTL2",conditions,evalTL2bart)
+}else{evalTL2bart <- Results_evaluation(BARTTL2results,datatest)
+evalTL2bart <- c("BARTTL2",conditions,evalTL2) }
+#write.table(t(evalTL2), file = TL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+#TL2results.cond=rbind(TL2results.cond,append(conditions,evalTL2))
+evalTL2bart_df <- data.frame(
+  METHOD = "BARTTL2",level2n=level2n,level1n=level1n,ICC=ICC, 
+  PSModel=PS_model,treatment_model=treatment_model,Outcomemodel=Outcome_model,Proportion=Proportion,tau_var=tau_var,
+  cate.PEHE_train=evalTL2bart[10],cate.RBias_train=evalTL2bart[11],catevar.Rbias_train=evalTL2bart[12],
+  cate.PEHE_test=evalTL2bart[13],cate.RBias_train=evalTL2bart[14],catevar.Rbias_test=evalTL2bart[15],
+  ps.MSE_train=evalTL2bart[16],ps.corr_train=evalTL2bart[17],ps.MSE_test=evalTL2bart[18],ps.corr_test=evalTL2bart[19],
+  train.ate=evalTL2bart[20],test.ate=evalTL2bart[21],train.ate.true=evalTL2bart[22],test.ate.true=evalTL2bart[23],
+  stringsAsFactors = FALSE)
+
+write.table(evalTL2bart_df, file = BARTTL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+
+  },
+  function() {
     SLearnerresult2 <- try(SLearner_est(data.test,data.train,datatest,covariates,learner="SL.bartMachine"),silent = F)
     if(class(SLearnerresult2)[[1]] =="try_error") {
       evalSL2 <-rep(-999,14)
@@ -322,27 +359,6 @@ tasks <- list(
     
     write.table(evalTL1_df, file = TL1results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
   },
-  function () {
-    TLearnerresult2 <- try(TLearner_est(data.test,data.train,datatest,covariates,learner="SL.bartMachine"),silent = F)
-    if(class(TLearnerresult2)[[1]] =="try_error") {
-      evalTL2 <-rep(-999,14)
-      evalTL2 <- c("TL2",conditions,evalTL2)
-    }else{evalTL2 <- Results_evaluation(TLearnerresult2,datatest)
-    evalTL2 <- c("TL2",conditions,evalTL2) }
-    #write.table(t(evalTL2), file = TL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
-    #TL2results.cond=rbind(TL2results.cond,append(conditions,evalTL2))
-    evalTL2_df <- data.frame(
-      METHOD = "TL2",level2n=level2n,level1n=level1n,ICC=ICC, 
-      PSModel=PS_model,treatment_model=treatment_model,Outcomemodel=Outcome_model,Proportion=Proportion,tau_var=tau_var,
-      cate.PEHE_train=evalTL2[10],cate.RBias_train=evalTL2[11],catevar.Rbias_train=evalTL2[12],
-      cate.PEHE_test=evalTL2[13],cate.RBias_train=evalTL2[14],catevar.Rbias_test=evalTL2[15],
-      ps.MSE_train=evalTL2[16],ps.corr_train=evalTL2[17],ps.MSE_test=evalTL2[18],ps.corr_test=evalTL2[19],
-      train.ate=evalTL2[20],test.ate=evalTL2[21],train.ate.true=evalTL2[22],test.ate.true=evalTL2[23],
-      stringsAsFactors = FALSE)
-    
-    write.table(evalTL2_df, file = TL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
-    
-  },
   function() {
     TLearnerresult3 <- try(TLearner_est(data.test,data.train,datatest,covariates,learner=c("SL.cforest","SL.bartMachine")),silent = F)
     if(class(TLearnerresult3)[[1]] =="try_error") {
@@ -364,53 +380,6 @@ tasks <- list(
     write.table(evalTL3_df, file = TL3results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
     
     print("TL finished")
-  },
-  function() {
-    XLearnerresult1 <- try(XLearner_est(data.test,data.train,datatest,covariates,learner="SL.cforest"),silent = F)
-    if(class(XLearnerresult1)[[1]] =="try_error") {  
-      evalXL1 <-rep(-999,14)
-      evalXL1 <- c("XL1",conditions,evalXL1)
-    }else{evalXL1 <- Results_evaluation(XLearnerresult1,datatest)
-    evalXL1 <- c("XL1",conditions,evalXL1) }
-    #write.table(t(evalXL1), file = XL1results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
-    #XL1results.cond=rbind(XL1results.cond,append(conditions,evalXL1))
-    evalXL1_df <- data.frame(
-      METHOD = "XL1",level2n=level2n,level1n=level1n,ICC=ICC, 
-      PSModel=PS_model,treatment_model=treatment_model,Outcomemodel=Outcome_model,Proportion=Proportion,tau_var=tau_var,
-      cate.PEHE_train=evalXL1[10],cate.RBias_train=evalXL1[11],catevar.Rbias_train=evalXL1[12],
-      cate.PEHE_test=evalXL1[13],cate.RBias_train=evalXL1[14],catevar.Rbias_test=evalXL1[15],
-      ps.MSE_train=evalXL1[16],ps.corr_train=evalXL1[17],ps.MSE_test=evalXL1[18],ps.corr_test=evalXL1[19],
-      train.ate=evalXL1[20],test.ate=evalXL1[21],train.ate.true=evalXL1[22],test.ate.true=evalXL1[23],
-      stringsAsFactors = FALSE)
-    
-    write.table(evalXL1_df, file = XL1results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
-    
-    
-    
-  },
-  function() {
-    
-    XLearnerresult2 <- try(XLearner_est(data.test,data.train,datatest,covariates,learner="SL.bartMachine"),silent = F)
-    if(class(XLearnerresult2)[[1]] =="try_error") {
-      evalXL2 <-rep(-999,14)
-      evalXL2 <- c("XL2",conditions,evalXL2) 
-    }else{evalXL2 <- Results_evaluation(XLearnerresult2,datatest)
-    evalXL2 <- c("XL2",conditions,evalXL2) }
-    #write.table(t(evalXL2), file = XL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
-    #XL2results.cond=rbind(XL2results.cond,append(conditions,evalXL2))
-    evalXL2_df <- data.frame(
-      METHOD = "XL2",level2n=level2n,level1n=level1n,ICC=ICC, 
-      PSModel=PS_model,treatment_model=treatment_model,Outcomemodel=Outcome_model,Proportion=Proportion,tau_var=tau_var,
-      cate.PEHE_train=evalXL2[10],cate.RBias_train=evalXL2[11],catevar.Rbias_train=evalXL2[12],
-      cate.PEHE_test=evalXL2[13],cate.RBias_train=evalXL2[14],catevar.Rbias_test=evalXL2[15],
-      ps.MSE_train=evalXL2[16],ps.corr_train=evalXL2[17],ps.MSE_test=evalXL2[18],ps.corr_test=evalXL2[19],
-      train.ate=evalXL2[20],test.ate=evalXL2[21],train.ate.true=evalXL2[22],test.ate.true=evalXL2[23],
-      stringsAsFactors = FALSE)
-    
-    write.table(evalXL2_df, file = XL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
-    
-    
-    
   },
   function() {
     XLearnerresult3 <- try(XLearner_est(data.test,data.train,datatest,covariates,learner=c("SL.cforest","SL.bartMachine")),silent = F)
