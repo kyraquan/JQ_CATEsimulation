@@ -129,24 +129,24 @@ data.train = as.data.frame(data.train)
 data.test = as.data.frame(data.test)
 
 conditions <- c(level2n,level1n,ICC, PS_model,treatment_model,Outcome_model,Proportion,tau_var)
-cl <- makeCluster(numCores, type="FORK")
+cl <- makeCluster(numCores)
 #run each method 
 
-# clusterExport(cl, c("Results_evaluation", "conditions", "level2n", "level1n", "ICC", "PS_model","treatment_model","Outcome_model","Proportion","tau_var", 
-#                    "BARTresults",
-#                     "CFresults",
-#                     "SL1results",
-#                     "SL2results",
-#                     "SL3results",
-#                     "TL1results",
-#                     "TL2results",
-#                     "TL3results",
-#                     "XL1results",
-#                     "XL2results",
-#                     "XL3results",
-#                     "CF_est","SLearner_est","XLearner_est","TLearner_est","BART_est","PS_model_data","datatest",
-#                     "data.train", "data.test", "covariates"
-# ))
+clusterExport(cl, c("Results_evaluation", "conditions", "level2n", "level1n", "ICC", "PS_model","treatment_model","Outcome_model","Proportion","tau_var", 
+                   "BARTresults",
+                    "CFresults",
+                    "SL1results",
+                    "SL2results",
+                    "SL3results",
+                    "TL1results",
+                    "TL2results",
+                    "TL3results",
+                    "XL1results",
+                    "XL2results",
+                    "XL3results",
+                    "CF_est","SLearner_est","XLearner_est","TLearner_est","BART_est","PS_model_data","datatest",
+                    "data.train", "data.test", "covariates"
+))
 
 tasks <- list(
   function() {
