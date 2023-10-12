@@ -21,7 +21,7 @@ print("source loaded")
 # Load the parallel package
 library(parallel)
 library(AzureStor)
-numCores <- 5
+numCores <- 6
 
 print(paste("Number of Cores", numCores))
 
@@ -148,6 +148,9 @@ clusterExport(cl, c("Results_evaluation", "conditions", "level2n", "level1n", "I
                     "CFXL1results",
                     "BARTTL2results",
                     "CF_est","SLearner_est","XLearner_est","TLearner_est","BART_est","PS_model_data","datatest",
+                    "CF_Xlearner",
+                    "BART_Xlearner",
+                    "BART_Tlearner",
                     "data.train", "data.test", "covariates"
 ))
 
@@ -210,11 +213,11 @@ tasks <- list(
     ########### CF finished 
   },
     function() {
-   CFXL1results <- try(CF_Xlearner(data.train,data.test,datatest),silent = F)
-if(class(CFXL1results)[[1]] =="try_error") {
+   CFXL1result <- try(CF_Xlearner(data.train,data.test,datatest),silent = F)
+if(class(CFXL1result)[[1]] =="try_error") {
   evalCFXL1 <-rep(-999,14)
   evalCFXL1 <- c("CFXL1",conditions,evalCFXL1)
-}else{evalCFXL1 <- Results_evaluation(CFXL1results,datatest)
+}else{evalCFXL1 <- Results_evaluation(CFXL1result,datatest)
 evalCFXL1 <- c("CFXL1",conditions,evalCFXL1) }
 #write.table(t(evalXL2), file = XL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
 #XL2results.cond=rbind(XL2results.cond,append(conditions,evalXL2))
@@ -232,11 +235,11 @@ write.table(evalCFXL1_df, file = CFXL1results, sep = ",", col.names = FALSE, row
     
   },
   function() {
-  BARTXL2results <- try(BART_Xlearner(data.train,data.test,datatest),silent = F)
-if(class(BARTXL2results)[[1]] =="try_error") {
+  BARTXL2result <- try(BART_Xlearner(data.train,data.test,datatest),silent = F)
+if(class(BARTXL2result)[[1]] =="try_error") {
   evalXL2bart <-rep(-999,14)
   evalXL2bart <- c("BARTXL2",conditions,evalXL2bart)
-}else{evalXL2bart <- Results_evaluation(BARTXL2results,datatest)
+}else{evalXL2bart <- Results_evaluation(BARTXL2result,datatest)
 evalXL2bart <- c("BARTXL2",conditions,evalXL2bart) }
 #write.table(t(evalXL2), file = XL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
 #XL2results.cond=rbind(XL2results.cond,append(conditions,evalXL2))
@@ -253,11 +256,11 @@ write.table(evalXL2bart_df, file = BARTXL2results, sep = ",", col.names = FALSE,
    # write.table(evalXL2_df, file = XL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
   },
   function() {
-    BARTTL2results <- try(TLearner_est(data.test,data.train,datatest),silent = F)
-if(class(BARTTL2results)[[1]] =="try_error") {
+    BARTTL2result <- try(BART_Tlearner(data.test,data.train,datatest),silent = F)
+if(class(BARTTL2result)[[1]] =="try_error") {
   evalTL2bart <-rep(-999,14)
   evalTL2bart <- c("BARTTL2",conditions,evalTL2bart)
-}else{evalTL2bart <- Results_evaluation(BARTTL2results,datatest)
+}else{evalTL2bart <- Results_evaluation(BARTTL2result,datatest)
 evalTL2bart <- c("BARTTL2",conditions,evalTL2bart) }
 #write.table(t(evalTL2), file = TL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
 #TL2results.cond=rbind(TL2results.cond,append(conditions,evalTL2))

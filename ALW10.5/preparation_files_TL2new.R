@@ -84,7 +84,7 @@ data.test = as.data.frame(data.test)
 
 conditions <- c(level2n,level1n,ICC, PS_model,treatment_model,Outcome_model,Proportion,tau_var)
 
-BARTTL2results <- try(TLearner_est(data.test,data.train,datatest),silent = F)
+BARTTL2results <- try(BART_Tlearner(data.test,data.train,datatest),silent = F)
 if(class(BARTTL2results)[[1]] =="try_error") {
   evalTL2bart <-rep(-999,14)
   evalTL2bart <- c("BARTTL2",conditions,evalTL2bart)
