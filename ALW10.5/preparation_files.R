@@ -80,7 +80,9 @@ write.table(headers, file = TL3results, sep = ",", row.names = FALSE, quote = FA
 write.table(headers, file = XL1results, sep = ",", row.names = FALSE, quote = FALSE)
 write.table(headers, file = XL2results, sep = ",", row.names = FALSE, quote = FALSE)
 write.table(headers, file = XL3results, sep = ",", row.names = FALSE, quote = FALSE)
-
+write.table(headers, file = BARTXL2results, sep = ",", row.names = FALSE, quote = FALSE)
+write.table(headers, file = CFXL1results, sep = ",", row.names = FALSE, quote = FALSE)
+write.table(headers, file = BARTTL2results, sep = ",", row.names = FALSE, quote = FALSE)
 
 
 NumIter=2 #ideal 1000 
