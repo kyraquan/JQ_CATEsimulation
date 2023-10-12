@@ -50,9 +50,9 @@ TL3results <- "TL3results.csv"
 XL1results <- "XL1results.csv"
 XL2results <- "XL2results.csv"
 XL3results <- "XL3results.csv"
-BARTXL2results <- "BARTXL2results.csv"
-CFXL1results <- "CFXL1results.csv"
-BARTTL2results <- "BARTTL2results.csv"
+#BARTXL2results <- "BARTXL2results.csv"
+#CFXL1results <- "CFXL1results.csv"
+#BARTTL2results <- "BARTTL2results.csv"
 
 # Assuming this file doesn't exist yet or you want to overwrite any previous content.
 #if (file.exists(file_name)) {
@@ -80,9 +80,9 @@ write.table(headers, file = TL3results, sep = ",", row.names = FALSE, quote = FA
 write.table(headers, file = XL1results, sep = ",", row.names = FALSE, quote = FALSE)
 write.table(headers, file = XL2results, sep = ",", row.names = FALSE, quote = FALSE)
 write.table(headers, file = XL3results, sep = ",", row.names = FALSE, quote = FALSE)
-write.table(headers, file = BARTXL2results, sep = ",", row.names = FALSE, quote = FALSE)
-write.table(headers, file = CFXL1results, sep = ",", row.names = FALSE, quote = FALSE)
-write.table(headers, file = BARTTL2results, sep = ",", row.names = FALSE, quote = FALSE)
+#write.table(headers, file = BARTXL2results, sep = ",", row.names = FALSE, quote = FALSE)
+#write.table(headers, file = CFXL1results, sep = ",", row.names = FALSE, quote = FALSE)
+#write.table(headers, file = BARTTL2results, sep = ",", row.names = FALSE, quote = FALSE)
 
 
 NumIter=2 #ideal 1000 
@@ -144,6 +144,7 @@ clusterExport(cl, c("Results_evaluation", "conditions", "level2n", "level1n", "I
                     "XL2results",
                     "XL3results",
                     "CF_est","SLearner_est","XLearner_est","TLearner_est","BART_est","PS_model_data","datatest",
+                    "CF_Xlearner","BART_Xlearner","BART_Tlearner",
                     "data.train", "data.test", "covariates"
 ))
 
@@ -223,7 +224,7 @@ evalCFXL1_df <- data.frame(
   train.ate=evalCFXL1[20],test.ate=evalCFXL1[21],train.ate.true=evalCFXL1[22],test.ate.true=evalCFXL1[23],
   stringsAsFactors = FALSE)
 
-write.table(evalCFXL1_df, file = CFXL1results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+write.table(evalCFXL1_df, file = XL1results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
     
     
   },
@@ -245,11 +246,13 @@ evalXL2bart_df <- data.frame(
   train.ate=evalXL2bart[20],test.ate=evalXL2bart[21],train.ate.true=evalXL2bart[22],test.ate.true=evalXL2bart[23],
   stringsAsFactors = FALSE)
 
-write.table(evalXL2bart_df, file = BARTXL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+write.table(evalXL2bart_df, file = XL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
    # write.table(evalXL2_df, file = XL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
   },
-  function() {
-    BARTTL2results <- try(TLearner_est(data.test,data.train,datatest),silent = F)
+
+
+  function() { #--- need to check 
+    BARTTL2results <- try(BART_Tlearner(data.test,data.train,datatest),silent = F)
 if(class(BARTTL2results)[[1]] =="try_error") {
   evalTL2bart <-rep(-999,14)
   evalTL2bart <- c("BARTTL2",conditions,evalTL2bart)
@@ -266,7 +269,7 @@ evalTL2bart_df <- data.frame(
   train.ate=evalTL2bart[20],test.ate=evalTL2bart[21],train.ate.true=evalTL2bart[22],test.ate.true=evalTL2bart[23],
   stringsAsFactors = FALSE)
 
-write.table(evalTL2bart_df, file = BARTTL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
+write.table(evalTL2bart_df, file = TL2results, sep = ",", col.names = FALSE, row.names = FALSE, append = TRUE, quote = FALSE)
 
   },
     function() {
@@ -422,10 +425,10 @@ storage_upload(cont, src=SL1results, dest=assemble_path(job_id, task_id, SL1resu
 storage_upload(cont, src=SL2results, dest=assemble_path(job_id, task_id, SL2results))
 storage_upload(cont, src=SL3results, dest=assemble_path(job_id, task_id, SL3results))
 storage_upload(cont, src=TL1results, dest=assemble_path(job_id, task_id, TL1results))
-storage_upload(cont, src=BARTTL2results, dest=assemble_path(job_id, task_id, TL2results))
+storage_upload(cont, src=TL2results, dest=assemble_path(job_id, task_id, TL2results))
 storage_upload(cont, src=TL3results, dest=assemble_path(job_id, task_id, TL3results))
-storage_upload(cont, src=CFXL1results, dest=assemble_path(job_id, task_id, XL1results))
-storage_upload(cont, src=BARTXL2result, dest=assemble_path(job_id, task_id, XL2results))
+storage_upload(cont, src=XL1results, dest=assemble_path(job_id, task_id, XL1results))
+storage_upload(cont, src=XL2results, dest=assemble_path(job_id, task_id, XL2results))
 storage_upload(cont, src=XL3results, dest=assemble_path(job_id, task_id, XL3results))
 
 
