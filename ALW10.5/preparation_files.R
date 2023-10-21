@@ -19,11 +19,11 @@ source("function_XLearner_est.R")
 print("source loaded")
 
 # Load the parallel package
-library(parallel)
-library(bartCause)
-library(grf)
-library(AzureStor)
-numCores <- 5
+library(parallel, lib.loc=Sys.getenv("R_LIBS_USER"))
+library(bartCause, lib.loc=Sys.getenv("R_LIBS_USER"))
+library(grf, lib.loc=Sys.getenv("R_LIBS_USER"))
+library(AzureStor, lib.loc=Sys.getenv("R_LIBS_USER"))
+numCores <- 12
 
 print(paste("Number of Cores", numCores))
 
@@ -41,20 +41,20 @@ assemble_path <- function(job_id, task_id, file_name) {
 }
 
 #file names 
-BARTresults <- "BARTresults.csv"
-CFresults <- "CFresults.csv"
-SL1results <- "SL1results.csv"
-SL2results <- "SL2results.csv"
-SL3results <- "SL3results.csv"
-TL1results <- "TL1results.csv"
-TL2results <- "TL2results.csv"
-TL3results <- "TL3results.csv"
-XL1results <- "XL1results.csv"
-XL2results <- "XL2results.csv"
-XL3results <- "XL3results.csv"
-BARTXL2results <- "BARTXL2results.csv"
-CFXL1results <- "CFXL1results.csv"
-BARTTL2results <- "BARTTL2results.csv"
+BARTresults <- paste0(task_id,"_BARTresults.csv")
+CFresults <- paste0(task_id,"CFresults.csv")
+SL1results <- paste0(task_id,"SL1results.csv")
+SL2results <- paste0(task_id,"SL2results.csv")
+SL3results <- paste0(task_id,"SL3results.csv")
+TL1results <- paste0(task_id,"TL1results.csv")
+TL2results <- paste0(task_id,"TL2results.csv")
+TL3results <- paste0(task_id,"TL3results.csv")
+XL1results <- paste0(task_id,"XL1results.csv")
+XL2results <- paste0(task_id,"XL2results.csv")
+XL3results <- paste0(task_id,"XL3results.csv")
+BARTXL2results <- paste0(task_id, "BARTXL2results.csv")
+CFXL1results <- paste0(task_id, "CFXL1results.csv")
+BARTTL2results <- paste0(task_id,"BARTTL2results.csv")
 
 # Assuming this file doesn't exist yet or you want to overwrite any previous content.
 #if (file.exists(file_name)) {
@@ -94,30 +94,26 @@ simulation.start = proc.time()
 covariates <- c("x1ij","x2ij","v1rep","v2rep","v3rep","V4","V5","X3","X4")
 
 # Get environment variable values as strings
-level2n_str <- Sys.getenv("level2n")
-level1n_str <- Sys.getenv("level1n")
-ICC_str <- Sys.getenv("ICC")
-PS_model_str <- Sys.getenv("PS_model")
-treatment_model_str <- Sys.getenv("treatment_model")
-Outcome_model_str <- Sys.getenv("Outcome_model")
-tau_var_str <- Sys.getenv("tau_var")
+# level2n_str <- Sys.getenv("level2n")
+# level1n_str <- Sys.getenv("level1n")
+# ICC_str <- Sys.getenv("ICC")
+# PS_model_str <- Sys.getenv("PS_model")
+# treatment_model_str <- Sys.getenv("treatment_model")
+# Outcome_model_str <- Sys.getenv("Outcome_model")
+# tau_var_str <- Sys.getenv("tau_var")
 
 # Convert to numeric if they are numeric values
-level2n <- as.numeric(level2n_str)
-level1n <- as.numeric(level1n_str)
-ICC <- as.numeric(ICC_str)
-PS_model <- as.numeric(PS_model_str)
-treatment_model <- as.numeric(treatment_model_str)
-Outcome_model <- as.numeric(Outcome_model_str)
-tau_var <- as.numeric(tau_var_str)
-
+level2n <- as.numeric(200)
+level1n <- as.numeric(30)
+ICC <- as.numeric(0.3)
+PS_model <- as.numeric(3)
+treatment_model <- as.numeric(3)
+Outcome_model <- as.numeric(1)
+tau_var <- as.numeric(0.1)
 
 Proportion=0.8472979
 
-for (i in 1:NumIter) { 
-
-datatest = PS_model_data(n_cluster=level2n, n_ind=level1n,ICC=ICC,int=Proportion,tau_var=tau_var,
-                         ps_model = PS_model,treatment_model = treatment_model,outcome_model = Outcome_model)
+datatest = read.csv(file=paste0(task_id,".csv"))
 
 #split the dataset into training and test data
 train.sample = sample(1:nrow(datatest), nrow(datatest)/2)
@@ -414,7 +410,7 @@ write.table(evalTL2bart_df, file = BARTTL2results, sep = ",", col.names = FALSE,
 results <- clusterApply(cl, tasks, fun = function(f) f())
 print(paste("Finished iteration ", i))
 stopCluster(cl)
-} #close the while loop
+
 
 storage_upload(cont, src=BARTresults, dest=assemble_path(job_id, task_id, BARTresults))
 storage_upload(cont, src=CFresults, dest=assemble_path(job_id, task_id, CFresults))
