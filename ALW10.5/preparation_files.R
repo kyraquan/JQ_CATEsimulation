@@ -87,7 +87,7 @@ write.table(headers, file = CFXL1results, sep = ",", row.names = FALSE, quote = 
 write.table(headers, file = BARTTL2results, sep = ",", row.names = FALSE, quote = FALSE)
 
 
-NumIter=100 #ideal 1000 
+#NumIter=100 #ideal 1000 
 simulation.start = proc.time()
 
 #committee to read the articles get dissertation to committee on 20th. 2 weeks and a half. 
@@ -114,6 +114,7 @@ tau_var <- as.numeric(0.1)
 Proportion=0.8472979
 
 datatest = read.csv(file=paste0(task_id,".csv"))
+datatest = datatest[,-1]
 
 #split the dataset into training and test data
 train.sample = sample(1:nrow(datatest), nrow(datatest)/2)
